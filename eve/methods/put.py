@@ -179,7 +179,7 @@ def put_internal(resource, payload=None, concurrency_check=False, **lookup):
         # consider all other exceptions as Bad Requests
         if config.DEBUG:
             logger.exception('An exception occured: %s', e)
-            
+
         abort(400, description=debug_error_message(
             'An exception occurred: %s' % e
         ))

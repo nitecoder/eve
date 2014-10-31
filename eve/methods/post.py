@@ -191,7 +191,7 @@ def post_internal(resource, payl=None):
             # consider all other exceptions as Bad Requests
             if config.DEBUG:
                 logger.exception('An exception occured: %s', e)
-            
+
             doc_issues['exception'] = str(e)
 
         if len(doc_issues):
