@@ -23,6 +23,8 @@ from eve.methods.common import parse, payload, ratelimit, \
     resolve_sub_resource_path, resolve_document_etag, oplog_push
 from eve.versioning import resolve_document_version, \
     insert_versioning_documents
+import logging
+logger = logging.getLogger(__name__)
 
 
 @ratelimit()
@@ -186,6 +188,10 @@ def post_internal(resource, payl=None):
         except Exception as e:
             # most likely a problem with the incoming payload, report back to
             # the client as if it was a validation issue
+            # consider all other exceptions as Bad Requests
+            if config.DEBUG:
+                logger.exception('An exception occured: %s', e)
+            
             doc_issues['exception'] = str(e)
 
         if len(doc_issues):
