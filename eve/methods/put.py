@@ -23,6 +23,8 @@ from eve.methods.common import get_document, parse, payload as payload_, \
     resolve_document_etag, oplog_push
 from eve.versioning import resolve_document_version, \
     insert_versioning_documents, late_versioning_catch
+import logging
+logger = logging.getLogger(__name__)
 
 
 @ratelimit()
@@ -175,6 +177,9 @@ def put_internal(resource, payload=None, concurrency_check=False, **lookup):
         raise e
     except Exception as e:
         # consider all other exceptions as Bad Requests
+        if config.DEBUG:
+            logger.exception('An exception occured: %s', e)
+            
         abort(400, description=debug_error_message(
             'An exception occurred: %s' % e
         ))
