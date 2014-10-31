@@ -888,7 +888,8 @@ def oplog_push(resource, updates, op, id=None):
             if op in ('PATCH', 'PUT'):
                 # these fields are already contained in 'entry'.
                 del(update[config.LAST_UPDATED])
-                del(update[config.ETAG])
+                if config.IF_MATCH:
+                    del(update[config.ETAG])
                 entry['c'] = update
             else:
                 pass
