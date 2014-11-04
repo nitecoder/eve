@@ -103,6 +103,7 @@ LATEST_VERSION = '_latest_version'
 # appended to ID_FIELD, holds the original document id in parallel collection
 VERSION_ID_SUFFIX = '_document'
 VERSION_DIFF_INCLUDE = []       # always include these fields when diffing
+VERSION_KEEP_ON_DELETE = False  # set to True to keep version records on entity deletes
 
 API_VERSION = ''
 URL_PREFIX = ''
