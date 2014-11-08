@@ -760,15 +760,28 @@ def pre_event(f):
         method = request_method()
         event_name = 'on_pre_' + method
         resource = args[0] if args else None
+
+        # Combine arguments before the callbacks
+        # - let's callbacks also see them
+        # - allows callbacks to modify them
+        combined_args = kwargs
+        if len(args) > 1:
+            combined_args.update(args[1].items())
+        
+        # TODO: fixes POST ommission from lookup, if so desired
+        #gh_params = (resource, request, combined_args)
+        #rh_params = (request, combined_args)
+        # ----- instead of the code below
         gh_params = ()
         rh_params = ()
         if method in ('GET', 'PATCH', 'DELETE', 'PUT'):
-            gh_params = (resource, request, kwargs)
+            gh_params = (resource, request, combined_args)
             rh_params = (request, kwargs)
         elif method in ('POST'):
             # POST hook does not support the kwargs argument
             gh_params = (resource, request)
             rh_params = (request,)
+        # ----- end POST omission fix
 
         # general hook
         getattr(app, event_name)(*gh_params)
@@ -776,9 +789,7 @@ def pre_event(f):
             # resource hook
             getattr(app, event_name + '_' + resource)(*rh_params)
 
-        combined_args = kwargs
-        if len(args) > 1:
-            combined_args.update(args[1].items())
+
         r = f(resource, **combined_args)
         return r
     return decorated
