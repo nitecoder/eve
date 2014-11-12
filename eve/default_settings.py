@@ -104,6 +104,7 @@ LATEST_VERSION = '_latest_version'
 VERSION_ID_SUFFIX = '_document'
 VERSION_DIFF_INCLUDE = []       # always include these fields when diffing
 VERSION_KEEP_ON_DELETE = False  # set to True to keep version records on entity deletes
+VERSIONED_FIELDS = [LAST_UPDATED, ETAG]  # Fields to automatically include into the versioned doc (in addition to "versioned" ones)
 
 API_VERSION = ''
 URL_PREFIX = ''

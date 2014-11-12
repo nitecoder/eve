@@ -154,11 +154,13 @@ def versioned_fields(resource_def):
     schema = resource_def['schema']
     fields = []
     if resource_def['versioning'] is True:
-        fields.append(app.config['LAST_UPDATED'])
-        fields.append(app.config['ETAG'])
+        #fields.append(app.config['LAST_UPDATED'])
+        #fields.append(app.config['ETAG'])
+        for field in app.config['VERSIONED_FIELDS']:
+            if field not in schema:
+                fields.append(field)
         for field in schema:
-            if field not in schema or \
-                    schema[field].get('versioned', True) is True:
+            if schema[field].get('versioned', True) is True:
                 fields.append(field)
 
     return fields
