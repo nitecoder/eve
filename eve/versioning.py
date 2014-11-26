@@ -186,8 +186,12 @@ def diff_document(resource_def, old_doc, new_doc):
         app.config['LINKS']]
 
     for field in fields:
-        if field in new_doc and \
-                (field not in old_doc or new_doc[field] != old_doc[field]):
+        try:
+            if field in new_doc and \
+                    (field not in old_doc or new_doc[field] != old_doc[field]):
+                diff[field] = new_doc[field]
+        except TypeError:
+            # TypeError: can't compare offset-naive and offset-aware datetimes
             diff[field] = new_doc[field]
 
     # This method does not show when fields are deleted.

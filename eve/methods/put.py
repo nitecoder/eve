@@ -24,6 +24,7 @@ from eve.methods.common import get_document, parse, payload as payload_, \
 from eve.versioning import resolve_document_version, \
     insert_versioning_documents, late_versioning_catch
 import logging
+from copy import copy
 logger = logging.getLogger(__name__)
 
 
@@ -155,7 +156,8 @@ def put_internal(resource, payload=None, concurrency_check=False, **lookup):
             app.data.replace(resource, object_id, document)
 
             # update oplog if needed
-            oplog_push(resource, document, 'PUT')
+            updates = copy(document)    # oplog_push modifies update list
+            oplog_push(resource, updates, 'PUT')
 
             insert_versioning_documents(resource, document)
 
