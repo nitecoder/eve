@@ -1,6 +1,6 @@
 import copy
 from flask import current_app as app, abort
-from eve.utils import config, debug_error_message
+from eve.utils import config, debug_error_message, ParsedRequest
 from werkzeug.exceptions import BadRequestKeyError
 
 
@@ -237,6 +237,12 @@ def synthesize_versioned_document(document, delta, resource_def):
     return old_doc
 
 
+def get_old_document_or_404(resource, req, lookup, document, version):
+    res = get_old_document(resource, req, lookup, document, version)
+    if not res:
+        abort(404)
+    return res
+
 def get_old_document(resource, req, lookup, document, version):
     """ Returns an old document if appropriate, otherwise passes the given
     document through.
@@ -249,7 +255,18 @@ def get_old_document(resource, req, lookup, document, version):
 
     .. versionadded:: 0.4
     """
-    if version != 'all' and version != 'diffs' and version is not None:
+    if version == 'all' or version == 'diffs' or version is None:
+        return document
+
+    if version == 'latest':
+        r2 = copy(req)
+        r2.where = {versioned_id_field() : lookup[app.config['ID_FIELD']]}
+        r2.sort = [(config.VERSION, -1)]
+        r2.max_results = 1
+        r2.page = 1
+        delta = app.data.find(resource + config.VERSIONS, req, None)
+
+    else:
         try:
             version = int(version)
             assert version > 0
@@ -257,7 +274,6 @@ def get_old_document(resource, req, lookup, document, version):
             abort(400, description=debug_error_message(
                 'Document version number should be an int greater than 0'
             ))
-
         # parameters to find specific document version
         if versioned_id_field() not in lookup:
             lookup[versioned_id_field()] = lookup[app.config['ID_FIELD']]
@@ -266,12 +282,14 @@ def get_old_document(resource, req, lookup, document, version):
 
         # synthesize old document from latest and delta
         delta = app.data.find_one(resource+config.VERSIONS, req, **lookup)
-        if not delta:
-            abort(404)
-        document = synthesize_versioned_document(
-            document,
-            delta,
-            config.DOMAIN[resource])
+
+    if not delta:
+        return None
+
+    document = synthesize_versioned_document(
+        document,
+        delta,
+        config.DOMAIN[resource])
 
     return document
 
