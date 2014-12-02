@@ -18,7 +18,7 @@ from .common import ratelimit, epoch, pre_event, resolve_embedded_fields, \
 from eve.auth import requires_auth
 from eve.utils import parse_request, home_link, querydef, config
 from eve.versioning import synthesize_versioned_document, versioned_id_field, \
-    get_old_document, diff_document
+    get_old_document, get_old_document_or_404, diff_document
 
 
 @ratelimit()
@@ -195,7 +195,8 @@ def getitem(resource, **lookup):
 
     document = app.data.find_one(resource, req, **lookup)
     if not document:
-        abort(404)
+        if not resource_def['versioning'] or not config.VERSION_USE_ON_MISSING:
+            abort(404) # Not Found
 
     response = {}
     etag = None
@@ -203,10 +204,29 @@ def getitem(resource, **lookup):
     latest_doc = None
     cursor = None
 
+    if not document:
+        document = get_old_document(resource, req, lookup, document, 'latest')
+        if not document:
+            abort(404) # Not Found, not even an old version
+        else:
+            redirect = document.get(config.REDIRECT)
+            if redirect is None:
+                abort(410) # Deleted
+            else:
+                # Response elements (positional)
+                #  body dict,
+                #  "Last-Modified" header value
+                #  "ETag" header value
+                #  status code
+                #  headers - list of (header, value) tuples
+                last_modified = document[config.LAST_UPDATED]
+                etag = document[config.ETAG]
+                return {}, last_modified, etag, 301, [("Location", redirect)] 
+
     # synthesize old document version(s)
     if resource_def['versioning'] is True:
         latest_doc = copy.deepcopy(document)
-        document = get_old_document(
+        document = get_old_document_or_404(
             resource, req, lookup, document, version)
 
     # meld into response document
@@ -253,7 +273,7 @@ def getitem(resource, **lookup):
             if version == 'diffs' and req.page > 1:
                 # grab the last document on the previous page to diff from
                 last_version = cursor[0][app.config['VERSION']] - 1
-                last_document = get_old_document(
+                last_document = get_old_document_or_404(
                     resource, req, lookup, latest_doc, last_version)
 
             for i, document in enumerate(cursor):

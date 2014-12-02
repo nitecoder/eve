@@ -100,11 +100,18 @@ VALIDATION_ERROR_STATUS = 422
 # we access a specific version
 LATEST_VERSION = '_latest_version'
 
+# Field in version docs that records the new id for this document.
+# When document is merged with another one or moved to a new identity,
+# This field is set of the versioned document and is used in the get() request
+# to generate a corresponding redirect response
+REDIRECT = '_redirect'
+
 # appended to ID_FIELD, holds the original document id in parallel collection
 VERSION_ID_SUFFIX = '_document'
 VERSION_DIFF_INCLUDE = []       # always include these fields when diffing
 VERSION_KEEP_ON_DELETE = False  # set to True to keep version records on entity deletes
-VERSIONED_FIELDS = [LAST_UPDATED, ETAG]  # Fields to automatically include into the versioned doc (in addition to "versioned" ones)
+VERSION_USE_ON_MISSING = False  # instead of just returning 404, check version collection and behave accordingly
+VERSIONED_FIELDS = [LAST_UPDATED, ETAG, REDIRECT]  # Fields to automatically include into the versioned doc (in addition to "versioned" ones)
 
 API_VERSION = ''
 URL_PREFIX = ''
