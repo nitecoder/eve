@@ -205,7 +205,7 @@ def getitem(resource, **lookup):
     cursor = None
 
     if not document:
-        document = get_old_document(resource, req, lookup, document, 'latest')
+        document = get_old_document(resource, req, lookup, {}, 'latest')
         if not document:
             abort(404) # Not Found, not even an old version
         else:

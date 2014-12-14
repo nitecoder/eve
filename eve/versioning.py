@@ -1,4 +1,4 @@
-import copy
+from copy import copy, deepcopy
 from flask import current_app as app, abort
 from eve.utils import config, debug_error_message, ParsedRequest
 from werkzeug.exceptions import BadRequestKeyError
@@ -215,7 +215,7 @@ def synthesize_versioned_document(document, delta, resource_def):
 
     .. versionadded:: 0.4
     """
-    old_doc = copy.deepcopy(document)
+    old_doc = deepcopy(document)
 
     if versioned_id_field() not in delta:
         abort(400, description=debug_error_message(
@@ -264,7 +264,10 @@ def get_old_document(resource, req, lookup, document, version):
         r2.sort = [(config.VERSION, -1)]
         r2.max_results = 1
         r2.page = 1
-        delta = app.data.find(resource + config.VERSIONS, req, None)
+        res = app.data.find(resource + config.VERSIONS, req, None)
+        for r in res:
+            delta = r
+            break
 
     else:
         try:
