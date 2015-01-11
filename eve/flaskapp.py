@@ -728,7 +728,6 @@ class Eve(Flask, Events):
         # this line only makes sense when we call this function outside of the
         # standard Eve setup routine, but it doesn't hurt to still call it
         self.config['DOMAIN'][resource] = settings
-
         # set up resource
         self._set_resource_defaults(resource, settings)
         self._validate_resource_settings(resource, settings)

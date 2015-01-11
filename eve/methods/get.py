@@ -220,7 +220,7 @@ def getitem(resource, **lookup):
                 #  status code
                 #  headers - list of (header, value) tuples
                 last_modified = document[config.LAST_UPDATED]
-                etag = document[config.ETAG]
+                etag = document.get(config.ETAG)
                 return {}, last_modified, etag, 301, [("Location", redirect)] 
 
     # synthesize old document version(s)

@@ -1,4 +1,5 @@
 from copy import copy, deepcopy
+import json
 from flask import current_app as app, abort
 from eve.utils import config, debug_error_message, ParsedRequest
 from werkzeug.exceptions import BadRequestKeyError
@@ -260,11 +261,12 @@ def get_old_document(resource, req, lookup, document, version):
 
     if version == 'latest':
         r2 = copy(req)
-        r2.where = {versioned_id_field() : lookup[app.config['ID_FIELD']]}
-        r2.sort = [(config.VERSION, -1)]
+        r2.where = json.dumps({versioned_id_field(): lookup[app.config['ID_FIELD']]})
+        r2.sort = '[("%s", -1)]' % config.VERSION
         r2.max_results = 1
         r2.page = 1
-        res = app.data.find(resource + config.VERSIONS, req, None)
+
+        res = app.data.find(resource + config.VERSIONS, r2, None)
         for r in res:
             delta = r
             break
