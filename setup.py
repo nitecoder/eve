@@ -31,7 +31,7 @@ except ImportError:
 
 setup(
     name='Eve',
-    version='0.5-dev',
+    version='0.5-nitecoder-0.1-dev',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     author='Nicola Iarocci',
