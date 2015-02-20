@@ -270,6 +270,8 @@ def get_old_document(resource, req, lookup, document, version):
         for r in res:
             delta = r
             break
+        else:
+            delta = None
 
     else:
         try:
