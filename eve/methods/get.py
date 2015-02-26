@@ -88,6 +88,10 @@ def get(resource, **lookup):
     response = {}
     etag = None
     req = parse_request(resource)
+    
+    getattr(app, "on_fetch_resource")(resource, request, req)
+    getattr(app, "on_fetch_resource_%s" % resource)(request, req)
+    
     embedded_fields = resolve_embedded_fields(resource, req)
 
     # continue processing the full request
