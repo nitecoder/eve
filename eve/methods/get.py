@@ -212,7 +212,7 @@ def getitem(resource, **lookup):
         document = get_old_document(resource, req, lookup, {}, 'latest')
         if not document:
             abort(404) # Not Found, not even an old version
-        else:
+        elif version is None:
             redirect = document.get(config.REDIRECT)
             if redirect is None:
                 abort(410) # Deleted

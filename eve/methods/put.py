@@ -15,14 +15,14 @@ from datetime import datetime
 from eve.auth import requires_auth
 from eve.defaults import resolve_default_values
 from eve.validation import ValidationError
-from flask import current_app as app, abort
+from flask import current_app as app, abort, request
 from eve.utils import config, debug_error_message, parse_request
 from eve.methods.common import get_document, parse, payload as payload_, \
     ratelimit, pre_event, store_media_files, resolve_user_restricted_access, \
     resolve_embedded_fields, build_response_document, marshal_write_response, \
     resolve_document_etag, oplog_push
 from eve.versioning import resolve_document_version, \
-    insert_versioning_documents, late_versioning_catch
+    insert_versioning_documents, late_versioning_catch, get_old_document
 import logging
 from copy import copy
 logger = logging.getLogger(__name__)
@@ -105,10 +105,20 @@ def put_internal(resource, payload=None, concurrency_check=False, **lookup):
     if payload is None:
         payload = payload_()
 
+    upsert = False
     original = get_document(resource, concurrency_check, **lookup)
+    if not original and resource_def['versioning'] and config.VERSION_USE_ON_MISSING:
+        version = request.args.get(config.VERSION_PARAM)
+        if not version is None:
+            # Let's find the latest version of this doc in history
+            req = parse_request(resource)
+            original = get_old_document(resource, req, lookup, {}, 'latest')
+            upsert = True
+            
     if not original:
         # not found
         abort(404)
+        
 
     last_modified = None
     etag = None
@@ -153,7 +163,7 @@ def put_internal(resource, payload=None, concurrency_check=False, **lookup):
             resolve_document_etag(document)
 
             # write to db
-            app.data.replace(resource, object_id, document)
+            app.data.replace(resource, object_id, document, upsert=upsert)
 
             # update oplog if needed
             updates = copy(document)    # oplog_push modifies update list

@@ -409,7 +409,7 @@ class Mongo(DataLayer):
                 'pymongo.errors.OperationFailure: %s' % e
             ))
 
-    def replace(self, resource, id_, document):
+    def replace(self, resource, id_, document, upsert=False):
         """ Replaces an existing document.
 
         .. versionchanged:: 0.3.0
@@ -429,6 +429,7 @@ class Mongo(DataLayer):
         # the original document as an argument though.
         try:
             self.driver.db[datasource].update(filter_, document,
+                                              upsert=upsert,
                                               **self._wc(resource))
         except pymongo.errors.OperationFailure as e:
             # see comment in :func:`insert()`.
